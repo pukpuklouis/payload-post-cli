@@ -1,5 +1,5 @@
 {
-  "name": "payload-post-cli",
+  "name": "@anlstudio/payload-post-cli",
   "version": "0.1.0",
   "type": "module",
   "types": "./dist/types/index.d.ts",

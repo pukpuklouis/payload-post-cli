@@ -16,6 +16,7 @@ Initial public release of `payload-post`, a terminal-native CLI for managing Pay
 - Auth support for `jwt`, `apiKey`, and login-based JWT exchange
 - `payload-post config init` for scaffolding a starter config file
 - Published package metadata and binary entrypoint suitable for `npm install -g`
+- Scoped package name for the `@anlstudio` organization
 
 ### Security and packaging
 

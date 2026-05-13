@@ -25,7 +25,7 @@
 ### 全域安裝
 
 ```bash
-npm install -g payload-post-cli
+npm install -g @anlstudio/payload-post-cli
 ```
 
 安裝完成後會提供 `payload-post` 指令：
@@ -40,7 +40,7 @@ payload-post list
 如果你只是想先試用，不需要全域安裝：
 
 ```bash
-npx payload-post-cli --help
+npx @anlstudio/payload-post-cli --help
 ```
 
 ### 從原始碼開發
@@ -103,7 +103,7 @@ payload-post config init
 ### 範例設定
 
 ```ts
-import type { PayloadPostConfig } from 'payload-post-cli';
+import type { PayloadPostConfig } from '@anlstudio/payload-post-cli';
 
 export default {
   baseUrl: 'http://localhost:3000',
@@ -257,13 +257,13 @@ payload-post --config ./configs/blog.config.json list
 升級到最新版：
 
 ```bash
-npm install -g payload-post-cli@latest
+npm install -g @anlstudio/payload-post-cli@latest
 ```
 
 解除安裝：
 
 ```bash
-npm uninstall -g payload-post-cli
+npm uninstall -g @anlstudio/payload-post-cli
 ```
 
 ## 專案開發備註

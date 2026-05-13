@@ -1,7 +1,7 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const template = `import type { PayloadPostConfig } from 'payload-post-cli';
+const template = `import type { PayloadPostConfig } from '@anlstudio/payload-post-cli';
 
 export default {
   baseUrl: 'http://localhost:3000',

@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+import { existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const distEntry = resolve(here, '../dist/cli/entry.js');
+const srcEntry = resolve(here, '../src/cli/entry.ts');
+
+if (existsSync(distEntry)) {
+  await import(pathToFileURL(distEntry).href);
+} else {
+  try {
+    const { tsImport } = await import('tsx/esm/api');
+    await tsImport(pathToFileURL(srcEntry).href, import.meta.url);
+  } catch {
+    throw new Error(
+      'payload-post is not built. Run `npm run build` in this checkout or install the published package.',
+    );
+  }
+}

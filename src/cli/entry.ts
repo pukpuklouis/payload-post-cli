@@ -191,8 +191,9 @@ const configCommand = program.command('config').description('Configuration helpe
 configCommand
   .command('init')
   .description('Create a default payload-post.config.ts file')
-  .action(async function initAction() {
-    const path = initConfigFile();
+  .option('--out <dir>', 'output directory (defaults to ~/.config/payload-post)')
+  .action(async function initAction(options) {
+    const path = initConfigFile(options.out);
     process.stdout.write(`Created ${path}\n`);
   });
 

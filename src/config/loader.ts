@@ -8,6 +8,7 @@ import {
   type PayloadPostConfigFileOutput,
   type PayloadPostConfigOutput,
 } from './schema.js';
+import { getGlobalConfigPath } from './init.js';
 
 const candidateFiles = [
   'payload-post.config.ts',
@@ -78,8 +79,13 @@ export async function findConfigPath(cwd = process.cwd(), overridePath?: string)
     }
   }
 
+  const globalPath = getGlobalConfigPath();
+  if (existsSync(globalPath)) {
+    return globalPath;
+  }
+
   throw new Error(
-    `No payload-post config found. Looked for: ${candidateFiles.join(', ')}`,
+    `No payload-post config found. Looked in current directory for: ${candidateFiles.join(', ')}, and at global path: ${globalPath}`,
   );
 }
 

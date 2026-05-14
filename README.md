@@ -86,11 +86,13 @@ npm run typecheck
 payload-post config init
 ```
 
-這會在目前目錄產生 `payload-post.config.ts`。
+這會在 `~/.config/payload-post/` 產生 `payload-post.config.ts`（可用 `--out <dir>` 指定其他目錄）。
 
 ## 設定檔
 
-預設會尋找以下其中一個檔案：
+載入順序：
+
+1. 目前目錄尋找以下其中一個檔案：
 
 - `payload-post.config.ts`
 - `payload-post.config.mts`
@@ -98,6 +100,8 @@ payload-post config init
 - `payload-post.config.mjs`
 - `payload-post.config.cjs`
 - `payload-post.config.json`
+
+2. 若目前目錄無設定檔，則回退到 `~/.config/payload-post/payload-post.config.ts`
 
 你也可以用 `--config` 指定路徑。
 

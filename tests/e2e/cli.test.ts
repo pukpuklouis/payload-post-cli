@@ -15,11 +15,23 @@ test('CLI help exits successfully', async () => {
   assert.equal(stderr, '');
 });
 
-test('config init scaffolds a config file', async () => {
+test('config init scaffolds a config file in the given --out directory', async () => {
   const cwd = mkdtempSync(resolve(tmpdir(), 'payload-post-cli-e2e-'));
-  const { stdout } = await execFile('node', [binPath, 'config', 'init'], { cwd });
+  const { stdout } = await execFile('node', [binPath, 'config', 'init', '--out', cwd], { cwd });
   assert.match(stdout, /Created .*payload-post\.config\.ts/);
   assert.match(readFileSync(resolve(cwd, 'payload-post.config.ts'), 'utf8'), /export default/);
+});
+
+test('config init defaults to ~/.config/payload-post/ when --out is omitted', async () => {
+  const fakeHome = mkdtempSync(resolve(tmpdir(), 'payload-post-cli-home-'));
+  const { stdout } = await execFile('node', [binPath, 'config', 'init'], {
+    env: { ...process.env, HOME: fakeHome },
+  });
+  assert.match(stdout, /Created .*payload-post\.config\.ts/);
+  assert.match(
+    readFileSync(resolve(fakeHome, '.config/payload-post/payload-post.config.ts'), 'utf8'),
+    /export default/,
+  );
 });
 
 test('commands fail clearly when config is missing', async () => {

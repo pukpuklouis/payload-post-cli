@@ -28,6 +28,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@anlstudio/payload-post-cli": "^0.2.1",
     "commander": "^14.0.3",
     "ink": "^7.0.2",
     "react": "^19.2.6",

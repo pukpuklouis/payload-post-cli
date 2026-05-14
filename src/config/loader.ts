@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ZodError } from 'zod';
 import { tsImport } from 'tsx/esm/api';
 import {
   PayloadPostConfigFileSchema,
@@ -25,6 +26,15 @@ export interface LoadConfigOptions {
   profile?: string | undefined;
 }
 
+function resolveModuleExport(mod: unknown): unknown {
+  if (!mod || typeof mod !== 'object') return mod;
+  const d = (mod as Record<string, unknown>).default;
+  if (!d || typeof d !== 'object') return mod;
+  // tsx may wrap the module in an extra default with __esModule marker
+  if ('__esModule' in d && 'default' in d) return (d as Record<string, unknown>).default ?? d;
+  return d;
+}
+
 async function loadConfigModule(filePath: string): Promise<unknown> {
   if (basename(filePath).endsWith('.json')) {
     return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -32,7 +42,7 @@ async function loadConfigModule(filePath: string): Promise<unknown> {
 
   const fileUrl = pathToFileURL(filePath).href;
   const mod = await tsImport(fileUrl, import.meta.url);
-  return mod?.default ?? mod;
+  return resolveModuleExport(mod);
 }
 
 function resolveProfileConfig(
@@ -89,12 +99,26 @@ export async function findConfigPath(cwd = process.cwd(), overridePath?: string)
   );
 }
 
+function formatZodIssues(error: ZodError): string {
+  return error.issues.map((issue) => `  - ${issue.path.join('.') || 'config'}: ${issue.message}`).join('\n');
+}
+
 export async function loadConfig(
   options: LoadConfigOptions = {},
 ): Promise<PayloadPostConfigOutput> {
   const cwd = options.cwd ?? process.cwd();
   const configPath = await findConfigPath(cwd, options.configPath);
   const rawConfig = await loadConfigModule(configPath);
-  const parsed = PayloadPostConfigFileSchema.parse(rawConfig);
-  return resolveProfileConfig(parsed, options.profile);
+
+  try {
+    const parsed = PayloadPostConfigFileSchema.parse(rawConfig);
+    return resolveProfileConfig(parsed, options.profile);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error(
+        `Config validation failed at ${configPath}:\n${formatZodIssues(error)}`,
+      );
+    }
+    throw error;
+  }
 }

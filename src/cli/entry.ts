@@ -238,7 +238,8 @@ if (process.argv.length <= 2) {
     await program.parseAsync(process.argv);
   } catch (error) {
     if (error instanceof Error) {
-      if ((error as { code?: string }).code === 'commander.helpDisplayed') {
+      const code = (error as { code?: string }).code;
+      if (code === 'commander.helpDisplayed' || code === 'commander.version') {
         process.exitCode = 0;
       } else {
         process.stderr.write(`${error.message}\n`);

@@ -36,8 +36,9 @@ test('config init defaults to ~/.config/payload-post/ when --out is omitted', as
 
 test('commands fail clearly when config is missing', async () => {
   const cwd = mkdtempSync(resolve(tmpdir(), 'payload-post-cli-e2e-missing-'));
+  const fakeHome = mkdtempSync(resolve(tmpdir(), 'payload-post-cli-home-missing-'));
   await assert.rejects(
-    () => execFile('node', [binPath, 'list'], { cwd }),
+    () => execFile('node', [binPath, 'list'], { cwd, env: { ...process.env, HOME: fakeHome } }),
     /No payload-post config found/,
   );
 });

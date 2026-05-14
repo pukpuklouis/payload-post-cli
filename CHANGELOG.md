@@ -14,6 +14,19 @@ All notable changes to this project will be documented in this file.
 - `formatPostsTable` accepts custom column order with empty-cell fallback for missing values
 - E2E and unit regression tests for profile selection, custom columns, and schema validation
 
+## 0.2.1 - 2026-05-14
+
+### Changed
+
+- `payload-post config init` now writes to `~/.config/payload-post/` instead of the current working directory
+- Config lookup now falls back to `~/.config/payload-post/payload-post.config.ts` when no local config is found
+
+### Added
+
+- `--out <dir>` flag on `config init` for custom output directory
+- `getGlobalConfigDir()` and `getGlobalConfigPath()` helpers
+- E2E tests for `--out` flag and default global path behavior
+
 ## 0.1.0 - 2026-05-13
 
 Initial public release of `payload-post`, a terminal-native CLI for managing Payload CMS posts.

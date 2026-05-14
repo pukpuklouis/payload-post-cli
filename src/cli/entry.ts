@@ -26,11 +26,17 @@ async function resolveConfigPath(command: Command): Promise<string | undefined> 
 
 async function loadRuntimeConfig(command: Command) {
   const configPath = await resolveConfigPath(command);
-  const config = await loadConfig(configPath ? { configPath } : {});
+  const root = command.optsWithGlobals() as { config?: string; profile?: string };
+  const config = await loadConfig(
+    configPath ? { configPath, profile: root.profile } : { profile: root.profile },
+  );
   return config;
 }
 
-function runtimeFlags(command: Command): { verbose?: boolean | undefined; json?: boolean | undefined } {
+function runtimeFlags(command: Command): {
+  verbose?: boolean | undefined;
+  json?: boolean | undefined;
+} {
   const flags = command.optsWithGlobals() as { verbose?: boolean; json?: boolean };
   return {
     verbose: flags.verbose,
@@ -69,19 +75,25 @@ async function confirm(message: string): Promise<boolean> {
   }
 }
 
-function printOutput(value: unknown, json = false): void {
+function printOutput(
+  value: unknown,
+  json = false,
+  columns?: Parameters<typeof formatPostsTable>[1],
+): void {
   if (json) {
     process.stdout.write(`${formatJson(value)}\n`);
     return;
   }
 
   if (Array.isArray(value)) {
-    process.stdout.write(`${formatPostsTable(value)}\n`);
+    process.stdout.write(`${formatPostsTable(value, columns)}\n`);
     return;
   }
 
   if (value && typeof value === 'object' && 'docs' in value && Array.isArray((value as { docs: unknown[] }).docs)) {
-    process.stdout.write(`${formatPostsTable((value as { docs: unknown[] }).docs as PostRecord[])}\n`);
+    process.stdout.write(
+      `${formatPostsTable((value as { docs: unknown[] }).docs as PostRecord[], columns)}\n`,
+    );
     return;
   }
 
@@ -96,8 +108,9 @@ function printOutput(value: unknown, json = false): void {
 program
   .name('payload-post')
   .description('Terminal-native CLI for managing Payload CMS posts')
-  .version('0.1.0')
+  .version('0.2.0')
   .option('-c, --config <path>', 'config file path')
+  .option('-p, --profile <name>', 'config profile name for multi-site setups')
   .option('--verbose', 'show HTTP request details')
   .option('--json', 'output raw JSON');
 
@@ -113,7 +126,7 @@ program
     const config = await loadRuntimeConfig(this.parent as Command);
     const flags = runtimeFlags(this.parent as Command);
     const result = await listPosts(config, options, flags);
-    printOutput(result, flags.json);
+    printOutput(result, flags.json, config.list?.columns);
   });
 
 program

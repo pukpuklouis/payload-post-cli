@@ -12,6 +12,7 @@
 
 - 支援 `list`、`create`、`update`、`delete`、`publish` 指令
 - 支援 `--config` 指定不同專案設定檔
+- 支援 `--profile` 切換多網站 / 多帳號設定
 - 支援 `--json`，方便管線處理與 `jq`
 - 支援 `--verbose`，可顯示實際 HTTP request
 - 支援三種認證方式：
@@ -103,29 +104,59 @@ payload-post config init
 ### 範例設定
 
 ```ts
-import type { PayloadPostConfig } from '@anlstudio/payload-post-cli';
+import type { PayloadPostWorkspaceConfig } from '@anlstudio/payload-post-cli';
 
 export default {
-  baseUrl: 'http://localhost:3000',
-  collection: 'posts',
-  auth: {
-    type: 'login',
-    collection: 'users',
-    username: 'writer',
-    password: 'secret',
+  defaultProfile: 'main',
+  profiles: {
+    main: {
+      baseUrl: 'http://localhost:3000',
+      collection: 'posts',
+      auth: {
+        type: 'login',
+        collection: 'users',
+        username: 'writer',
+        password: 'secret',
+      },
+      list: {
+        columns: ['title', 'slug', 'status', 'updatedAt'],
+        searchFields: ['title', 'slug', 'excerpt', 'content'],
+      },
+      fields: {
+        id: 'id',
+        title: 'title',
+        slug: 'slug',
+        status: 'status',
+        excerpt: 'excerpt',
+        content: 'content',
+        updatedAt: 'updatedAt',
+        publishedAt: 'publishedAt',
+        author: 'author',
+      },
+    },
+    // Add more sites or accounts here.
+    // newsroom: {
+    //   baseUrl: 'https://news.example.com',
+    //   collection: 'articles',
+    //   auth: { type: 'jwt', token: 'replace-me' },
+    //   list: {
+    //     columns: ['slug', 'title', 'status'],
+    //     searchFields: ['slug'],
+    //   },
+    //   fields: {
+    //     id: 'id',
+    //     title: 'headline',
+    //     slug: 'slug',
+    //     status: 'state',
+    //     excerpt: 'summary',
+    //     content: 'body',
+    //     updatedAt: 'updated_at',
+    //     publishedAt: 'published_at',
+    //     author: 'author',
+    //   },
+    // },
   },
-  fields: {
-    id: 'id',
-    title: 'title',
-    slug: 'slug',
-    status: 'status',
-    excerpt: 'excerpt',
-    content: 'content',
-    updatedAt: 'updatedAt',
-    publishedAt: 'publishedAt',
-    author: 'author',
-  },
-} satisfies PayloadPostConfig;
+} satisfies PayloadPostWorkspaceConfig;
 ```
 
 ### 認證方式
@@ -184,6 +215,7 @@ payload-post list
 payload-post list --status draft
 payload-post list --search hello
 payload-post list --limit 20 --page 2
+payload-post --profile newsroom list
 ```
 
 ### 建立文章
@@ -222,6 +254,7 @@ payload-post tui --once
 ## 全域 flags
 
 - `--config <path>`：指定設定檔
+- `--profile <name>`：從多 profile 設定檔中選擇網站 / 帳號，例如 `payload-post --profile newsroom list`
 - `--verbose`：顯示 HTTP request
 - `--json`：輸出原始 JSON，方便 pipe 到其他工具
 
@@ -237,6 +270,12 @@ payload-post --json list | jq '.docs[0].title'
 
 ```bash
 payload-post --config ./configs/blog.config.json list
+```
+
+切換到另一個網站或帳號：
+
+```bash
+payload-post --profile newsroom list
 ```
 
 ## Payload 相容性說明

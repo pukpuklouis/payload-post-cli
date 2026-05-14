@@ -22,6 +22,7 @@ async function startMockPayloadServer() {
       },
     ],
   };
+  let lastQuery = '';
 
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1');
@@ -48,11 +49,20 @@ async function startMockPayloadServer() {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/posts') {
+      lastQuery = url.search;
       const status = url.searchParams.get('where[_status][equals]') ?? '';
-      const search = Array.from(url.searchParams.entries()).find(([key]) => key.includes('[like]'))?.[1] ?? '';
+      const searches = Array.from(url.searchParams.entries())
+        .filter(([key]) => key.includes('[like]'))
+        .map(([, value]) => value);
       const docs = state.posts.filter((post) => {
         const matchesStatus = status ? post.status === status : true;
-        const matchesSearch = search ? post.title.toLowerCase().includes(search.toLowerCase()) : true;
+        const matchesSearch = searches.length
+          ? searches.some(
+              (search) =>
+                post.title.toLowerCase().includes(search.toLowerCase()) ||
+                post.slug.toLowerCase().includes(search.toLowerCase()),
+            )
+          : true;
         return matchesStatus && matchesSearch;
       });
       res.writeHead(200, {'content-type': 'application/json'});
@@ -123,29 +133,55 @@ async function startMockPayloadServer() {
   return {
     server,
     url: `http://127.0.0.1:${address.port}`,
+    getLastQuery: () => lastQuery,
   };
 }
 
 test('command matrix, config override, JSON output, and error paths', async () => {
-  const {server, url} = await startMockPayloadServer();
+  const {server, url, getLastQuery} = await startMockPayloadServer();
   const cwd = mkdtempSync(resolve(tmpdir(), 'payload-post-cli-matrix-'));
   const configPath = resolve(cwd, 'custom.config.json');
   writeFileSync(
     configPath,
-      JSON.stringify({
-        baseUrl: url,
-        collection: 'posts',
-        auth: {type: 'login', collection: 'users', username: 'writer', password: 'secret'},
-        fields: {
-          id: 'id',
-          title: 'headline',
-        slug: 'urlSlug',
-        status: '_status',
-        excerpt: 'summary',
-        content: 'body',
-        updatedAt: 'updatedAt',
-        publishedAt: 'publishedAt',
-        author: 'author',
+    JSON.stringify({
+      defaultProfile: 'main',
+      profiles: {
+        main: {
+          baseUrl: url,
+          collection: 'posts',
+          auth: {type: 'login', collection: 'users', username: 'writer', password: 'secret'},
+          fields: {
+            id: 'id',
+            title: 'headline',
+            slug: 'urlSlug',
+            status: '_status',
+            excerpt: 'summary',
+            content: 'body',
+            updatedAt: 'updatedAt',
+            publishedAt: 'publishedAt',
+            author: 'author',
+          },
+        },
+        newsroom: {
+          baseUrl: url,
+          collection: 'posts',
+          auth: {type: 'login', collection: 'users', username: 'writer', password: 'secret'},
+          fields: {
+            id: 'id',
+            title: 'headline',
+            slug: 'urlSlug',
+            status: '_status',
+            excerpt: 'summary',
+            content: 'body',
+            updatedAt: 'updatedAt',
+            publishedAt: 'publishedAt',
+            author: 'author',
+          },
+          list: {
+            columns: ['slug', 'title', 'status'],
+            searchFields: ['slug'],
+          },
+        },
       },
     }),
     'utf8',
@@ -161,6 +197,17 @@ test('command matrix, config override, JSON output, and error paths', async () =
 
     const searched = await execFile('node', [binPath, '--config', configPath, 'list', '--search', 'hell'], {cwd});
     assert.match(searched.stdout, /Hello/);
+
+    const newsroom = await execFile(
+      'node',
+      [binPath, '--config', configPath, '--profile', 'newsroom', 'list', '--search', 'hello'],
+      {cwd},
+    );
+    const newsroomHeader = newsroom.stdout.split('\n')[0]?.trimEnd() ?? '';
+    assert.match(newsroomHeader, /^Slug\s+Title\s+Status$/);
+    assert.doesNotMatch(newsroom.stdout, /Updated At/);
+    assert.match(getLastQuery(), /where%5Bor%5D%5B0%5D%5BurlSlug%5D%5Blike%5D=hello/);
+    assert.doesNotMatch(getLastQuery(), /headline/);
 
     const missingCollectionPath = resolve(cwd, 'missing-collection.config.json');
     writeFileSync(

@@ -64,6 +64,32 @@ test('listPosts maps documents and builds search/status queries', async () => {
   }
 });
 
+test('listPosts uses profile-specific search fields', async () => {
+  const restore = withMockFetch((url) => {
+    assert.match(url, /\/api\/posts\?/);
+    assert.doesNotMatch(url, /where%5Bor%5D%5B0%5D%5Bheadline%5D%5Blike%5D=hello/);
+    assert.match(url, /where%5Bor%5D%5B0%5D%5BurlSlug%5D%5Blike%5D=hello/);
+    return new Response(JSON.stringify({ docs: [] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  });
+
+  try {
+    await listPosts(
+      {
+        ...config,
+        list: {
+          searchFields: ['slug', 'content'],
+        },
+      },
+      { search: 'hello' },
+    );
+  } finally {
+    restore();
+  }
+});
+
 test('createPost requires fields and posts mapped JSON', async () => {
   const restore = withMockFetch((url, init) => {
     assert.equal(url, 'http://localhost:3000/api/posts');

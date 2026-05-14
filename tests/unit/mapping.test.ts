@@ -57,3 +57,23 @@ test('fromPayloadFields maps known fields and fills publishedAt null', () => {
   assert.equal(typeof doc.content, 'string');
 });
 
+test('fromPayloadFields preserves unmapped fields without warning', () => {
+  const originalWarn = console.warn;
+  let warnCount = 0;
+  console.warn = () => {
+    warnCount += 1;
+  };
+
+  try {
+    const doc = fromPayloadFields(config, {
+      id: '1',
+      headline: 'Hello',
+      customField: 'kept',
+    });
+
+    assert.equal(doc.customField, 'kept');
+    assert.equal(warnCount, 0);
+  } finally {
+    console.warn = originalWarn;
+  }
+});

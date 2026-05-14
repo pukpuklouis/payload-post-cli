@@ -12,6 +12,22 @@ export const localFieldNames = [
 
 export type LocalFieldName = (typeof localFieldNames)[number];
 
+export const listViewColumnNames = [
+  'title',
+  'slug',
+  'status',
+  'updatedAt',
+  'publishedAt',
+  'excerpt',
+  'author',
+] as const;
+
+export type ListViewColumnName = (typeof listViewColumnNames)[number];
+
+export const listSearchFieldNames = ['title', 'slug', 'excerpt', 'content'] as const;
+
+export type ListSearchFieldName = (typeof listSearchFieldNames)[number];
+
 export type AuthConfig =
   | {
       type: 'apiKey';
@@ -32,14 +48,25 @@ export type AuthConfig =
 
 export type FieldMapping = Partial<Record<LocalFieldName, string>>;
 
+export interface PayloadPostListViewConfig {
+  columns?: ListViewColumnName[] | undefined;
+  searchFields?: ListSearchFieldName[] | undefined;
+}
+
 export interface PayloadPostConfig {
   baseUrl: string;
   collection: string;
   auth: AuthConfig;
   fields: FieldMapping;
+  list?: PayloadPostListViewConfig | undefined;
   pagination?: {
-      limit: number;
-    } | undefined;
+    limit: number;
+  } | undefined;
+}
+
+export interface PayloadPostWorkspaceConfig {
+  defaultProfile?: string | undefined;
+  profiles: Record<string, PayloadPostConfig>;
 }
 
 export interface PostRecord {

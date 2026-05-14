@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0 - 2026-05-14
+
+### Added
+
+- Profile-aware list presentation with per-profile `list.columns` and `list.searchFields`
+- `PayloadPostWorkspaceConfig` for multi-site / multi-account setups via `profiles`
+- `--profile` flag to select a config profile at runtime
+- `uniqueEnumArraySchema` validation for list columns and search fields (rejects duplicates, unknown fields, and empty arrays)
+- `listPosts` uses profile-specific `searchFields` when building `where.or` queries
+- `formatPostsTable` accepts custom column order with empty-cell fallback for missing values
+- E2E and unit regression tests for profile selection, custom columns, and schema validation
+
 ## 0.1.0 - 2026-05-13
 
 Initial public release of `payload-post`, a terminal-native CLI for managing Payload CMS posts.

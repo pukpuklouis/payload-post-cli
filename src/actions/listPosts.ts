@@ -1,5 +1,10 @@
 import { ensureRequiredMappings, fromPayloadFields, toPayloadField } from '../config/mapping.js';
-import type { ListPostsArgs, PayloadPostConfig, PostRecord } from '../types/index.js';
+import {
+  listSearchFieldNames,
+  type ListPostsArgs,
+  type PayloadPostConfig,
+  type PostRecord,
+} from '../types/index.js';
 import { createPayloadClient } from '../client/http.js';
 
 export async function listPosts(
@@ -17,7 +22,7 @@ export async function listPosts(
   }
 
   if (args.search) {
-    const searchableFields = ['title', 'slug', 'excerpt', 'content']
+    const searchableFields = (config.list?.searchFields ?? listSearchFieldNames)
       .map((field) => config.fields[field as keyof PayloadPostConfig['fields']] ?? field)
       .filter(Boolean);
 

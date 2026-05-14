@@ -1,21 +1,4 @@
-import { localFieldNames, type PayloadPostConfig, type PostRecord } from '../types/index.js';
-
-const knownPassthroughFields = new Set([
-  'createdAt',
-  'updatedAt',
-  'id',
-  '_id',
-  'docId',
-  'totalDocs',
-  'limit',
-  'totalPages',
-  'page',
-  'pagingCounter',
-  'hasPrevPage',
-  'hasNextPage',
-  'prevPage',
-  'nextPage',
-]);
+import { type PayloadPostConfig, type PostRecord } from '../types/index.js';
 
 export class ConfigError extends Error {
   constructor(message: string) {
@@ -61,10 +44,6 @@ export function fromPayloadFields(
 
   for (const [key, value] of Object.entries(payloadDoc)) {
     const localKey = reverseMap[key] ?? key;
-
-    if (!(localKey in result) && !localFieldNames.includes(localKey as (typeof localFieldNames)[number]) && !knownPassthroughFields.has(key)) {
-      console.warn(`payload-post: unknown payload field "${key}" in response`);
-    }
 
     if (localKey === 'content' && Array.isArray(value)) {
       result[localKey] = JSON.stringify(value);

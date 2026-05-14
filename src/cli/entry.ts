@@ -108,7 +108,7 @@ function printOutput(
 program
   .name('payload-post')
   .description('Terminal-native CLI for managing Payload CMS posts')
-  .version('0.2.0')
+  .version('0.2.1')
   .option('-c, --config <path>', 'config file path')
   .option('-p, --profile <name>', 'config profile name for multi-site setups')
   .option('--verbose', 'show HTTP request details')
